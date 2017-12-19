@@ -1,12 +1,9 @@
 (ns demo.handler
   (:require
-    [clojure.java.io :as io]
-    [clojure.string :as str]
-    [com.climate.claypoole :as cp]
+    [clojure.tools.reader.edn :as edn]
     [compojure.core :as compojure]
     [compojure.handler :as handler]
     [compojure.route :as route]
-    [demo.phone-number :as phone]
     [demo.layout :as layout]
     [ring.util.http-response :as ruhr]
     [hiccup.middleware :refer [wrap-base-url]]
@@ -19,8 +16,6 @@
     [ring.middleware.format :as format]
     [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.misc :as tm]
-    [tupelo.string :as ts]
     [tupelo.schema :as tsk]))
 (t/refer-tupelo)
 
@@ -29,52 +24,66 @@
  ;(spyx-pretty req)
   (layout/common [:h1 "Hello World!"]))
 
-(defn query [number]
-  ; (spyx :query number)
+(s/defn query
+  [number-str :- s/Str]
+  (spy :210 number-str)
   (try
-    (let [result (phone/get-phone-entry-edn number) ]
+    (let-spy-pretty [
+          number (edn/read-string number-str)
+          >> (spy :211 number)
+          result (if (<= 0 number 9)
+                   {:number  number}
+                   (throw (IllegalStateException. (str "Illegal: " number))) ) ]
       (ruhr/ok result))
     (catch Exception ex (ruhr/not-found))))
 
 (compojure/defroutes home-routes
-  (compojure/GET "/" req (home req)) ; explicit use of request map
+  (compojure/GET "/" req
+    (nl) (println :010)
+    (spyx-pretty req)
+    (spyx-pretty (home req))) ; explicit use of request map
+
   (compojure/ANY "/request" [] dump/handle-dump ) ; implicit use of request map
+
   (compojure/GET "/query" [number :as req]
-    ; (nl) (spyx-pretty req)
-    (query number))
-  (compojure/POST "/number" [number name context :as req]
-    (let [new-entry {:phone number :context context :name name}]
-      (phone/add-phone-entry new-entry)
-      (ruhr/created {}))))
+    (nl) (println :200)
+    (spyx-pretty req)
+    (nl)
+    (spyx-pretty (query number)))
+
+  (compojure/POST "/number" [number :as req]
+    (nl) (println :300)
+    (spyx-pretty req)
+    (nl)
+    (spyx-pretty (ruhr/created {}))))
 
 (compojure/defroutes app-routes
   (route/resources "/")
   (route/not-found "Not Found"))
 
-(s/defn ^:no-doc add-headers :- {s/Str s/Str} ; #todo -> tupelo/web
+(s/defn ^:no-doc add-headers :- tsk/KeyMap ; #todo -> tupelo/web
   "Merges the supplied map string key/value pairs to the request/response
   `:headers`"
   [req-resp-map  :- tsk/KeyMap
    headers-map :- {s/Str s/Str}]
-  (update req-resp-map :headers glue headers-map))
+  (nl) (println "add-headers:")
+  (spyx-pretty req-resp-map)
+  (let [result (update req-resp-map :headers glue headers-map)]
+    (spyx-pretty result)))
+
 (defn wrap-response-headers [handler] ; #todo -> tupelo/web
   (fn [req]
+    (nl) (println "wrap-response-headers:")
     (-> req
       handler
       (add-headers {"Server" "EncycloPhonica 666"
                     "Author" "HAL 9000"}))))
 
 (defn init []
-  (newline)
-  (println "starting")
-  (println "loading EDN seed data:")
-  (phone/load-seed-data-edn)
-  (println "EDN seed data read...  count=" (count @phone/phone-db))
-  (newline))
+  (println "init - enter") )
 
 (defn destroy []
-  (newline)
-  (println "shutting down")
+  (println "destroy - shutting down")
   (newline))
 
 (def app

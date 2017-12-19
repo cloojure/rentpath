@@ -6,5 +6,6 @@
 (t/refer-tupelo)
 
 (dotest
+  (println "tst.demo.core" )
 
 )

@@ -8,5 +8,3 @@
      (include-css "/css/screen.css")]
     [:body body]))
 
-(defn -main [& args]
-  (println "main - enter"))
