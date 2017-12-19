@@ -4,7 +4,7 @@
 (defn common [& body]
   (html5
     [:head
-     [:title "Welcome to hello-world"]
+     [:title "Welcome to DemoLand"]
      (include-css "/css/screen.css")]
     [:body body]))
 

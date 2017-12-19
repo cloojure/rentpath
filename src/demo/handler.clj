@@ -19,6 +19,7 @@
     [tupelo.schema :as tsk]))
 (t/refer-tupelo)
 
+(def demo-db (atom #{}))
 
 (defn home [req]
  ;(spyx-pretty req)
@@ -26,34 +27,31 @@
 
 (s/defn query
   [number-str :- s/Str]
-  (spy :210 number-str)
   (try
-    (let-spy-pretty [
-          number (edn/read-string number-str)
-          >> (spy :211 number)
-          result (if (<= 0 number 9)
-                   {:number  number}
-                   (throw (IllegalStateException. (str "Illegal: " number))) ) ]
+    (let [number (edn/read-string number-str)
+          result (if (contains? @demo-db number)
+                   {:found  number}
+                   (throw (IllegalStateException. (str "Not in DB: " number))) ) ]
       (ruhr/ok result))
     (catch Exception ex (ruhr/not-found))))
 
 (compojure/defroutes home-routes
   (compojure/GET "/" req
-    (nl) (println :010)
-    (spyx-pretty req)
-    (spyx-pretty (home req))) ; explicit use of request map
+    (home req)) ; explicit use of request map
 
   (compojure/ANY "/request" [] dump/handle-dump ) ; implicit use of request map
 
   (compojure/GET "/query" [number :as req]
-    (nl) (println :200)
-    (spyx-pretty req)
-    (nl)
-    (spyx-pretty (query number)))
+    ; (nl) (println :200) (spyx-pretty req) (nl)
+    (query number))
 
   (compojure/POST "/number" [number :as req]
     (nl) (println :300)
+    (spyxx number)
     (spyx-pretty req)
+    (let [number (edn/read-string number) ]
+      (spyxx number)
+      (swap! demo-db glue #{number}))
     (nl)
     (spyx-pretty (ruhr/created {}))))
 
@@ -66,14 +64,10 @@
   `:headers`"
   [req-resp-map  :- tsk/KeyMap
    headers-map :- {s/Str s/Str}]
-  (nl) (println "add-headers:")
-  (spyx-pretty req-resp-map)
-  (let [result (update req-resp-map :headers glue headers-map)]
-    (spyx-pretty result)))
+  (update req-resp-map :headers glue headers-map))
 
 (defn wrap-response-headers [handler] ; #todo -> tupelo/web
   (fn [req]
-    (nl) (println "wrap-response-headers:")
     (-> req
       handler
       (add-headers {"Server" "EncycloPhonica 666"
