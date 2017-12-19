@@ -1,4 +1,4 @@
-(defproject clj "0.1.0-SNAPSHOT"
+(defproject demo "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -12,7 +12,6 @@
                  [instaparse "1.4.8"]
                  [metosin/ring-http-response "0.9.0"]
                  [org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojure "1.9.0-RC1"]
                  [org.clojure/core.async "0.3.465"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/tools.reader "1.1.1"]
@@ -20,7 +19,6 @@
                  [ring "1.6.3"]
                 ;[ring-server "0.5.0"]
                  [ring-middleware-format "0.7.2"]
-                 [ring/ring-codec "1.0.1"]
                  [ring/ring-codec "1.1.0"]
                  [ring/ring-defaults "0.3.1"]
                  [ring/ring-mock "0.3.2"]
@@ -28,17 +26,17 @@
                 ]
 
   :plugins [[lein-ring "0.12.1"]]
-  :ring {:handler hello-world.handler/app
-         :init    hello-world.handler/init
-         :destroy hello-world.handler/destroy}
+  :ring {:handler demo.handler/app
+         :init    demo.handler/init
+         :destroy demo.handler/destroy}
   :profiles {:uberjar {:aot :all}
              :production
                       {:ring
                        {:open-browser? false, :stacktraces? false, :auto-reload? false}}
-             :dev     {:dependencies [[ring-mock "0.1.5"] [ring/ring-devel "1.6.3"]]}})
+             :dev     {:dependencies [[ring-mock "0.1.5"] [ring/ring-devel "1.6.3"]]}}
   :global-vars {*warn-on-reflection* false}
 
   :main ^:skip-aot demo.core
   :target-path "target/%s"
-  :jvm-opts ["-Xms1g" "-Xmx2g" ]
-)
+  :jvm-opts ["-Xms1g" "-Xmx2g"]
+  )

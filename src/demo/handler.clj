@@ -7,7 +7,7 @@
     [compojure.handler :as handler]
     [compojure.route :as route]
     [demo.phone-number :as phone]
-    [demo.views.layout :as layout]
+    [demo.layout :as layout]
     [ring.util.http-response :as ruhr]
     [hiccup.middleware :refer [wrap-base-url]]
     [ring.handler.dump :as dump]
