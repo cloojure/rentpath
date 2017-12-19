@@ -1,0 +1,9 @@
+== Run Unit Tests
+
+Assumes Java 8 installed
+
+[source,shell]
+----
+> lein test 
+----
+
