@@ -9,9 +9,11 @@
 (t/refer-tupelo)
 
 (dotest
-  (println "http-kit:  starting server")
+  (print "server (http-kit):  starting...")
   (let [server-shutdown-fn (http-server/run-server (var app) {:port 9797})
         resp               (tm/unlazy @(http-client/get "http://localhost:9797"))]
+    ;(spyx-pretty resp)
+    (println "   done.")
 
     (let [response-reset (tm/unlazy @(http-client/get "http://localhost:9797/reset"))]
       (is (re-find #"RESET" (grab :body response-reset))))
@@ -47,7 +49,7 @@
       (is= (:status resp) 200)
       (is= (json->edn (grab :body resp)) {:user "fred" :score 6}))
 
-    (print "http-kit:  shutting down...")
+    (print "server (http-kit):  ending...")
     (server-shutdown-fn :timeout 1000)
-    (println "   done.")))
+    (println "     done.")))
 
