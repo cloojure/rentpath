@@ -29,14 +29,13 @@
 (def db-map (atom {}))
 
 (defn home [req]
- ;(spyx-pretty req)
   (layout/common [:h1 "Hello World!"]))
 
 (s/defn query :- tsk/KeyMap
   [user :- s/Str]
   (try
     (if (contains? @db-map user)
-      (spyx (ruhr/ok {:user user :score (grab user @db-map)}))
+      (ruhr/ok {:user user :score (grab user @db-map)})
       (ruhr/not-found))
     (catch Exception ex (ruhr/not-found))))
 
@@ -51,20 +50,15 @@
     (ruhr/ok "*** DB RESET TO INITIAL STATE ***"))
 
   (compojure/POST "/event" [user event-type :as req]
-    (nl) (println :300)
-    (spyx-pretty req)
     (let [event-points (get events->points event-type default-event-points)]
-      (spyxx [user event-type event-points])
       (when-not (contains? @db-map user)
-        (println "*** adding user to db: " user)
+      ; (println "*** adding user to db: " user)
         (swap! db-map assoc user 0))
       (swap! db-map (fn swap-update-fn [db-map]
                       (update db-map user #(+ % event-points)))))
-    (nl) (spyx @db-map)
     (ruhr/created {}))
 
   (compojure/GET "/query" [user :as req]
-    (nl) (println :200) (spyx-pretty req)
     (query user)))
 
 (compojure/defroutes app-routes
