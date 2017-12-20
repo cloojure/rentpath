@@ -19,7 +19,7 @@
     [tupelo.schema :as tsk]))
 (t/refer-tupelo)
 
-(def users #{ :fred :barney :wilma :betty :dino })
+(def users #{ "fred" "barney" "wilma" "betty" "dino" })
 (def events->points {"PushEvent"                     5
                      "PullRequestReviewCommentEvent" 4
                      "WatchEvent"                    3
@@ -42,8 +42,6 @@
 (compojure/defroutes home-routes
   (compojure/GET "/" req
     (home req))     ; explicit use of request map
-
-  (compojure/ANY "/request" [] dump/handle-dump) ; implicit use of request map
 
   (compojure/ANY "/reset" []
     (reset! db-map {})
