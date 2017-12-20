@@ -27,8 +27,9 @@
 
   :plugins [[lein-ring "0.12.1"]]
   :ring {:handler demo.handler/app
-         :init    demo.handler/init
-         :destroy demo.handler/destroy}
+       ; :init    demo.handler/init
+       ; :destroy demo.handler/destroy
+        }
   :profiles {:uberjar {:aot :all}
              :production
                       {:ring

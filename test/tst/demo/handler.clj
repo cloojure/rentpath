@@ -31,12 +31,15 @@
     (println "not-found route")
     (is= (:status response) 404))
 
-  (let-spy-pretty [
+  (let [
         resp-post (unlazy-app (it-> (rmr/request :post "/number")
                                          (rmr/body it {:number 5} )))
         resp-get (unlazy-app (it-> (rmr/request :get "/query")
                                (rmr/query-string it {:number 5})))
         body     (json->edn (grab :body resp-get))]
+
+    (is= (:status resp-post) 201)
+    (is= (:status resp-get) 200)
     (is= body {:found 5}))
 
   (is= (ruhr/not-found {})
@@ -50,21 +53,30 @@
 
 (dotest
   (nl)
-  (println "starting server")
-  (let-spy-pretty [
-        server-shutdown-fn (http-server/run-server (var app) {:port 9797})
-        >>                 (println "pinging localhost")
+  (println "http-kit:  starting server")
+  (let [server-shutdown-fn (http-server/run-server (var app) {:port 9797})
+        ; >>                 (println "pinging localhost")
         resp-1             @(http-client/get "http://localhost:9797")
-                   ; >> (spyx-pretty resp-1)
+        ; >>                 (spyx-pretty resp-1)
 
-        response-post      (unlazy-app (it-> (rmr/request :post "/number")
-                                         (rmr/body it {:number 7} )))
-        response-get       (unlazy-app (it-> (rmr/request :get "/query")
-                                         (rmr/query-string it {:number 7})))]
+        response-post     @(http-client/request {:url         "http://localhost:9797/number"
+                                                 :method      :post
+                                                 :form-params {:number 7}})
+        ; >>                 (spyx-pretty response-post)
+
+        response-get      @(http-client/request {:url          "http://localhost:9797/query"
+                                                 :method       :get
+                                                 :query-params {:number 7}})
+        ; >>                 (spyx-pretty response-get)
+        ]
     (is= (:status response-post) 201)
     (is= (:status response-get) 200)
     (is= (json->edn (grab :body response-get))
       {:found 7})
 
-    (server-shutdown-fn :timeout 1000)))
+    (println "http-kit:  shutting down...")
+    (server-shutdown-fn :timeout 1000)
+    (println "http-kit:     done.")
+    (flush)
+    ))
 
