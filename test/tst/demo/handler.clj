@@ -13,44 +13,12 @@
   ))
 (t/refer-tupelo)
 
-(def unlazy-app (comp tm/unlazy app))
-
 (dotest
   (is= (ruc/url-encode "+123-hello") "+123-hello")
   (is= (ruc/percent-encode "+123-hello") "%2B%31%32%33%2D%68%65%6C%6C%6F")
   (is= (ruc/form-encode "+123-hello") "%2B123-hello")
 
   (is= {:a 1 :b 2} (edn/read-string "{:a 1 :b 2}")) )
-
-#_(dotest
-  (let [response (unlazy-app (rmr/request :get "/"))]
-    (println "main route")
-    (is= (:status response) 200)
-    (is (.contains (:body response) "Hello World")))
-
-  (let [response (unlazy-app (rmr/request :get "/invalid"))]
-    (println "not-found route")
-    (is= (:status response) 404))
-
-  (let [
-        resp-post (unlazy-app (it-> (rmr/request :post "/number")
-                                         (rmr/body it {:number 5} )))
-        resp-get (unlazy-app (it-> (rmr/request :get "/query")
-                               (rmr/query-string it {:number 5})))
-        body     (json->edn (grab :body resp-get))]
-
-    (is= (:status resp-post) 201)
-    (is= (:status resp-get) 200)
-    (is= body {:found 5}))
-
-  (is= (ruhr/not-found {})
-    {:status 404, :headers {}, :body {}} )
-
-  ; non-existent phone number
-  (let [response-get (unlazy-app (it-> (rmr/request :get "/query")
-                                       (rmr/query-string it {:number "666"})))]
-    (is= 404 (grab :status response-get)))
-)
 
 (dotest
   (nl)
@@ -86,6 +54,17 @@
       (spyx-pretty resp)
       (is= (:status resp) 200)
       (is= (json->edn (grab :body resp)) {:user "fred" :score 8}))
+
+    (let [resp (tm/unlazy @(http-client/get "http://localhost:9797/reset"))
+          resp (tm/unlazy @(http-client/post "http://localhost:9797/event"
+                             {:form-params {:user "fred" :event-type "PullRequestReviewCommentEvent"}}))
+          resp (tm/unlazy @(http-client/post "http://localhost:9797/event"
+                             {:form-params {:user "fred" :event-type "CreateEvent"}}))
+          resp (tm/unlazy @(http-client/get "http://localhost:9797/query"
+                             { :query-params {:user "fred"}}))]
+      (spyx-pretty resp)
+      (is= (:status resp) 200)
+      (is= (json->edn (grab :body resp)) {:user "fred" :score 6}))
 
     (println "http-kit:  shutting down...")
     (server-shutdown-fn :timeout 1000)
