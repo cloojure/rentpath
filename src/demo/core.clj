@@ -9,13 +9,6 @@
 (def server-port 9797)
 (def server-shutdown-fn ::undefined)
 
-(def users #{ :fred :barney :wilma :betty :dino })
-(def events->points {:PushEvent                     5
-                     :PullRequestReviewCommentEvent 4
-                     :WatchEvent                    3
-                     :CreateEvent                   2
-                     :other                         1} )
-
 (defn -main []
   (nl)
   (println (format "Starting http-kit server on port %d server-port..." server-port))

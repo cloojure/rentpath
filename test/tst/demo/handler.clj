@@ -2,6 +2,7 @@
   (:use demo.handler tupelo.test)
   (:require
     [clojure.tools.reader.edn :as edn]
+    [clojure.string :as str]
     [org.httpkit.client :as http-client]
     [org.httpkit.server :as http-server]
     [ring.util.http-response :as ruhr]
@@ -21,7 +22,7 @@
 
   (is= {:a 1 :b 2} (edn/read-string "{:a 1 :b 2}")) )
 
-(dotest
+#_(dotest
   (let [response (unlazy-app (rmr/request :get "/"))]
     (println "main route")
     (is= (:status response) 200)
@@ -55,28 +56,30 @@
   (nl)
   (println "http-kit:  starting server")
   (let [server-shutdown-fn (http-server/run-server (var app) {:port 9797})
-        ; >>                 (println "pinging localhost")
-        resp-1             @(http-client/get "http://localhost:9797")
-        ; >>                 (spyx-pretty resp-1)
+        >>                 (println "pinging localhost")
+        resp-1             (tm/unlazy @(http-client/get "http://localhost:9797"))]
+    (spyx-pretty resp-1)
+    (let [response-reset (tm/unlazy @(http-client/get "http://localhost:9797/reset"))]
+      (is (re-find #"RESET" (grab :body response-reset))))
+    (let [
+          response-post (tm/unlazy @(http-client/request {:url         "http://localhost:9797/event"
+                                                          :method      :post
+                                                          :form-params {:user "fred" :event-type "foobar"}}))
+          >>            (spyx-pretty response-post)
 
-        response-post     @(http-client/request {:url         "http://localhost:9797/number"
-                                                 :method      :post
-                                                 :form-params {:number 7}})
-        ; >>                 (spyx-pretty response-post)
+          response-get  (tm/unlazy @(http-client/request {:url          "http://localhost:9797/query"
+                                                          :method       :get
+                                                          :query-params {:user "fred"}}))
+          >>            (spyx-pretty response-get)
+          ]
+      (is= (:status response-post) 201)
+      (is= (:status response-get) 200)
+      (is= (json->edn (grab :body response-get))
+        {:user "fred" :score 1})
 
-        response-get      @(http-client/request {:url          "http://localhost:9797/query"
-                                                 :method       :get
-                                                 :query-params {:number 7}})
-        ; >>                 (spyx-pretty response-get)
-        ]
-    (is= (:status response-post) 201)
-    (is= (:status response-get) 200)
-    (is= (json->edn (grab :body response-get))
-      {:found 7})
-
-    (println "http-kit:  shutting down...")
-    (server-shutdown-fn :timeout 1000)
-    (println "http-kit:     done.")
-    (flush)
-    ))
+      (println "http-kit:  shutting down...")
+      (server-shutdown-fn :timeout 1000)
+      (println "http-kit:     done.")
+      (flush)
+      )))
 

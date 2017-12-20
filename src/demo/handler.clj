@@ -19,41 +19,53 @@
     [tupelo.schema :as tsk]))
 (t/refer-tupelo)
 
-(def demo-db (atom #{}))
+(def users #{ :fred :barney :wilma :betty :dino })
+(def events->points {:PushEvent                     5
+                     :PullRequestReviewCommentEvent 4
+                     :WatchEvent                    3
+                     :CreateEvent                   2 } )
+(def default-event-points 1)
+
+(def db-map (atom {}))
 
 (defn home [req]
  ;(spyx-pretty req)
   (layout/common [:h1 "Hello World!"]))
 
-(s/defn query
-  [number-str :- s/Str]
+(s/defn query :- tsk/KeyMap
+  [user :- s/Str]
   (try
-    (let [number (edn/read-string number-str)
-          result (if (contains? @demo-db number)
-                   {:found  number}
-                   (throw (IllegalStateException. (str "Not in DB: " number))) ) ]
-      (ruhr/ok result))
+    (if (contains? @db-map user)
+      (spyx (ruhr/ok {:user user :score (grab user @db-map)}))
+      (ruhr/not-found))
     (catch Exception ex (ruhr/not-found))))
 
 (compojure/defroutes home-routes
   (compojure/GET "/" req
-    (home req)) ; explicit use of request map
+    (home req))     ; explicit use of request map
 
-  (compojure/ANY "/request" [] dump/handle-dump ) ; implicit use of request map
+  (compojure/ANY "/request" [] dump/handle-dump) ; implicit use of request map
 
-  (compojure/GET "/query" [number :as req]
-    ; (nl) (println :200) (spyx-pretty req) (nl)
-    (query number))
+  (compojure/ANY "/reset" []
+    (reset! db-map {})
+    (ruhr/ok "*** DB RESET TO INITIAL STATE ***"))
 
-  (compojure/POST "/number" [number :as req]
+  (compojure/POST "/event" [user event-type :as req]
     (nl) (println :300)
-    (spyxx number)
     (spyx-pretty req)
-    (let [number (edn/read-string number) ]
-      (spyxx number)
-      (swap! demo-db glue #{number}))
-    (nl)
-    (spyx-pretty (ruhr/created {}))))
+    (let [event-points (get events->points event-type default-event-points)]
+      (spyxx [user event-type event-points])
+      (when-not (contains? @db-map user)
+        (println "*** adding user to db: " user)
+        (swap! db-map assoc user 0))
+      (swap! db-map (fn swap-update-fn [db-map]
+                      (update db-map user #(+ % event-points)))))
+    (nl) (spyx @db-map)
+    (ruhr/created {}))
+
+  (compojure/GET "/query" [user :as req]
+    (nl) (println :200) (spyx-pretty req)
+    (query user)))
 
 (compojure/defroutes app-routes
   (route/resources "/")
