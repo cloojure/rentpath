@@ -34,7 +34,8 @@
              :production
                       {:ring
                        {:open-browser? false, :stacktraces? false, :auto-reload? false}}
-             :dev     {:dependencies [[ring-mock "0.1.5"] [ring/ring-devel "1.6.3"]]}}
+             :dev     {:dependencies [[ring-mock "0.1.5"]
+                                      [ring/ring-devel "1.6.3"]]}}
   :global-vars {*warn-on-reflection* false}
 
   :main ^:skip-aot demo.core

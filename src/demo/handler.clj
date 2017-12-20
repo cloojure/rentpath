@@ -73,16 +73,6 @@
       (add-headers {"Server" "EncycloPhonica 666"
                     "Author" "HAL 9000"}))))
 
-;(defn init []
-;  (println "init - enter") )
-;
-;(defn destroy []
-;  (newline)
-;  (println "***********************")
-;  (println "destroy - shutting down")
-;  (println "***********************")
-;  (newline))
-
 (def app
   (-> (compojure/routes home-routes app-routes)
     format/wrap-restful-format
