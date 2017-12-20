@@ -83,11 +83,11 @@ The API paths are as follows (see unit tests for examples):
 
         Resets the score db to zero for all users.
 
- - POST localhost:9797/event  {:form-params {:user user  :event-type event-type}}
+ - POST localhost:9797/event  `{:form-params {:user user  :event-type event-type}}`
 
         Add the specified user & event to the DB.
 
- - GET localhost:9797/query  {:query-params {:user user}}
+ - GET localhost:9797/query  `{:query-params {:user user}}`
 
-        Returns the accumulated score for the specified user as {:body {:user user :score score}}
+        Returns the accumulated score for the specified user as `{:body {:user user :score score}}`
 
