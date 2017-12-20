@@ -66,3 +66,28 @@ Ran 5 tests containing 14 assertions.
 If you have link:https://github.com/jakemcc/lein-test-refresh[test-refresh] installed, you can hit
 `<ret>` a few times to see different random events chosen & processed for each user. Otherwise, just
 use repeated invocations of `lein test`.
+
+== Running Server Manually
+
+At the terminal, enter
+
+[source,shell]
+----
+> lein run
+----
+
+This starts a server on port 9797, where you may post events and query scores. 
+The API paths are as follows (see unit tests for examples):
+
+ - GET localhost:9797/reset         
+
+        Resets the score db to zero for all users.
+
+ - POST localhost:9797/event  {:form-params {:user user  :event-type event-type}}
+
+        Add the specified user & event to the DB.
+
+ - GET localhost:9797/query  {:query-params {:user user}}
+
+        Returns the accumulated score for the specified user as {:body {:user user :score score}}
+
