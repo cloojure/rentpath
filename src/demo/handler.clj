@@ -20,10 +20,10 @@
 (t/refer-tupelo)
 
 (def users #{ :fred :barney :wilma :betty :dino })
-(def events->points {:PushEvent                     5
-                     :PullRequestReviewCommentEvent 4
-                     :WatchEvent                    3
-                     :CreateEvent                   2 } )
+(def events->points {"PushEvent"                     5
+                     "PullRequestReviewCommentEvent" 4
+                     "WatchEvent"                    3
+                     "CreateEvent"                   2})
 (def default-event-points 1)
 
 (def db-map (atom {}))

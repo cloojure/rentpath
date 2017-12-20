@@ -59,27 +59,35 @@
         >>                 (println "pinging localhost")
         resp-1             (tm/unlazy @(http-client/get "http://localhost:9797"))]
     (spyx-pretty resp-1)
+
     (let [response-reset (tm/unlazy @(http-client/get "http://localhost:9797/reset"))]
       (is (re-find #"RESET" (grab :body response-reset))))
-    (let [
-          response-post (tm/unlazy @(http-client/request {:url         "http://localhost:9797/event"
+
+    (let [response-post (tm/unlazy @(http-client/request {:url         "http://localhost:9797/event"
                                                           :method      :post
-                                                          :form-params {:user "fred" :event-type "foobar"}}))
-          >>            (spyx-pretty response-post)
+                                                          :form-params {:user "fred" :event-type "foobar"}}))]
+      (spyx-pretty response-post)
+      (is= (:status response-post) 201))
 
-          response-get  (tm/unlazy @(http-client/request {:url          "http://localhost:9797/query"
-                                                          :method       :get
-                                                          :query-params {:user "fred"}}))
-          >>            (spyx-pretty response-get)
-          ]
-      (is= (:status response-post) 201)
+    (let [response-get (tm/unlazy @(http-client/request {:url          "http://localhost:9797/query"
+                                                         :method       :get
+                                                         :query-params {:user "fred"}}))]
+      (spyx-pretty response-get)
       (is= (:status response-get) 200)
-      (is= (json->edn (grab :body response-get))
-        {:user "fred" :score 1})
+      (is= (json->edn (grab :body response-get)) {:user "fred" :score 1}) )
 
-      (println "http-kit:  shutting down...")
-      (server-shutdown-fn :timeout 1000)
-      (println "http-kit:     done.")
-      (flush)
-      )))
+    (let [resp (tm/unlazy @(http-client/get "http://localhost:9797/reset"))
+          resp (tm/unlazy @(http-client/post "http://localhost:9797/event"
+                             {:form-params {:user "fred" :event-type "PushEvent"}}))
+          resp (tm/unlazy @(http-client/post "http://localhost:9797/event"
+                             {:form-params {:user "fred" :event-type "WatchEvent"}}))
+          resp (tm/unlazy @(http-client/get "http://localhost:9797/query"
+                             { :query-params {:user "fred"}}))]
+      (spyx-pretty resp)
+      (is= (:status resp) 200)
+      (is= (json->edn (grab :body resp)) {:user "fred" :score 8}))
+
+    (println "http-kit:  shutting down...")
+    (server-shutdown-fn :timeout 1000)
+    (println "http-kit:     done.")))
 
