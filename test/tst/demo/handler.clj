@@ -71,9 +71,8 @@
 
 (dotest
   (let [events (t/append (keys events->points) "OtherEvent")
-        score  (events-score events) ]
-    (is= 15 score))
-)
+        score  (events-score events)]
+    (is= 15 score)))
 
 (def min-events-per-user 2)
 (def max-events-per-user 5)

@@ -1,19 +1,17 @@
 (ns demo.handler
   (:require
-    [clojure.tools.reader.edn :as edn]
     [compojure.core :as compojure]
     [compojure.handler :as handler]
     [compojure.route :as route]
     [demo.layout :as layout]
-    [ring.util.http-response :as ruhr]
     [hiccup.middleware :refer [wrap-base-url]]
-    [ring.handler.dump :as dump]
-    [ring.middleware.file-info :refer [wrap-file-info]]
-    [ring.middleware.resource :refer [wrap-resource]]
-    [ring.middleware.reload :as reload]
-    [ring.mock.request :as rmr]
     [ring.middleware.defaults :as rmd]
+    [ring.middleware.file-info :refer [wrap-file-info]]
     [ring.middleware.format :as format]
+    [ring.middleware.reload :as reload]
+    [ring.middleware.resource :refer [wrap-resource]]
+    [ring.mock.request :as rmr]
+    [ring.util.http-response :as ruhr]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.schema :as tsk]))
@@ -29,7 +27,7 @@
 (def db-map (atom {}))
 
 (defn home [req]
-  (layout/common [:h1 "Hello World!"]))
+  (layout/common [:h1 "Server Ready"]))
 
 (s/defn query :- tsk/KeyMap
   [user :- s/Str]
@@ -41,7 +39,7 @@
 
 (compojure/defroutes home-routes
   (compojure/GET "/" req
-    (home req))     ; explicit use of request map
+    (home req))
 
   (compojure/ANY "/reset" []
     (reset! db-map {})
