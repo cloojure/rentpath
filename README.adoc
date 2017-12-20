@@ -1,9 +1,68 @@
-== Run Unit Tests
+== Requirements
 
-Assumes Java 8 installed
+ - Java 8 (one of the libs has trouble with Java 9)
+ - leiningen
+
+== Runing Unit Tests
+
+At the terminal, enter:
 
 [source,shell]
 ----
 > lein test 
 ----
 
+This runs both basic and randomized unit tests, producing output such as:
+
+[source,shell]
+----
+-------------------------------------
+   Clojure 1.9.0    Java 1.8.0_144
+-------------------------------------
+
+Testing tst.demo.core
+tst.demo.core
+
+Testing tst.demo.handler
+
+["wilma"
+ {:events-lst
+  ["CreateEvent"
+   "PullRequestReviewCommentEvent"
+   "CreateEvent"
+   "PullRequestReviewCommentEvent"],
+  :expected-score 12,
+  :score 12}]
+
+["dino"
+ {:events-lst ["PushEvent" "WatchEvent" "WatchEvent" "CreateEvent"],
+  :expected-score 13,
+  :score 13}]
+
+["betty"
+ {:events-lst
+  ["CreateEvent"
+   "PullRequestReviewCommentEvent"
+   "PullRequestReviewCommentEvent"
+   "PullRequestReviewCommentEvent"],
+  :expected-score 14,
+  :score 14}]
+
+["barney"
+ {:events-lst
+  ["CreateEvent" "PullRequestReviewCommentEvent" "CreateEvent"],
+  :expected-score 8,
+  :score 8}]
+
+["fred"
+ {:events-lst ["PushEvent" "CreateEvent" "WatchEvent"],
+  :expected-score 10,
+  :score 10}]
+
+Ran 5 tests containing 14 assertions.
+0 failures, 0 errors.
+----
+
+If you have link:https://github.com/jakemcc/lein-test-refresh[test-refresh] installed, you can hit
+`<ret>` a few times to see different random events chosen & processed for each user. Otherwise, just
+use repeated invocations of `lein test`.

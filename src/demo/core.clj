@@ -6,25 +6,31 @@
 )
 (t/refer-tupelo)
 
+(def server-verbose-flg false)
 (def server-port 9797)
 (def server-shutdown-fn ::undefined)
 
-(defn -main []
-  (nl)
-  (println (format "Starting http-kit server on port %d server-port..." server-port))
+(defn server-start []
+  (when server-verbose-flg
+    (print (format "Server (http-kit) starting on port %d ..." server-port)))
 
   ; save a reference to the shutdown function returned by `run-server`
   (alter-var-root (var server-shutdown-fn)
     (constantly
       (http-server/run-server (var handler/app) {:port 9797})))
-  (println "  ...server running.")
+
+  (when server-verbose-flg (println "    done.")))
+
+(defn server-stop []
+  (when server-verbose-flg (print "http-kit:  shutting down..."))
+  (server-shutdown-fn :timeout 1000)
+  (when server-verbose-flg (println "   done.")))
+
+(defn -main []
+  (server-start)
 
   ; for testing
   (when false
     (Thread/sleep 9000)
-    (println "killing server")
-    (println "http-kit:  shutting down...")
-    (server-shutdown-fn :timeout 1000)
-    (println "http-kit:     done.")
-    (flush))
+    (server-stop))
   )
